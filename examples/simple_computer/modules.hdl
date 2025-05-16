@@ -1,0 +1,515 @@
+/*
+    Basic logic gates
+*/
+module Not(a) -> out {
+    Nand(a, a) -> out 
+}
+
+module Not4(a[4]) -> out[4] {
+    Not(a[0]) -> out[0]
+    Not(a[1]) -> out[1]
+    Not(a[2]) -> out[2]
+    Not(a[3]) -> out[3]
+}
+
+module Not8(a[8]) -> out[8] {
+    Not(a[0]) -> out[0]
+    Not(a[1]) -> out[1]
+    Not(a[2]) -> out[2]
+    Not(a[3]) -> out[3]
+    Not(a[4]) -> out[4]
+    Not(a[5]) -> out[5]
+    Not(a[6]) -> out[6]
+    Not(a[7]) -> out[7]
+}
+
+module Not16(a[16]) -> out[16] {
+    Not(a[0]) -> out[0]
+    Not(a[1]) -> out[1]
+    Not(a[2]) -> out[2]
+    Not(a[3]) -> out[3]
+    Not(a[4]) -> out[4]
+    Not(a[5]) -> out[5]
+    Not(a[6]) -> out[6]
+    Not(a[7]) -> out[7]
+    Not(a[8]) -> out[8]
+    Not(a[9]) -> out[9]
+    Not(a[10]) -> out[10]
+    Not(a[11]) -> out[11]
+    Not(a[12]) -> out[12]
+    Not(a[13]) -> out[13]
+    Not(a[14]) -> out[14]
+    Not(a[15]) -> out[15]
+}
+
+module And(a, b) -> out {
+    Nand(a, b) -> temp
+    Not(temp) -> out
+}
+
+module And4Way(a[4]) -> out {
+    And(a[0], a[1]) -> a1
+    And(a1, a[2]) -> a2
+    And(a2, a[3]) -> out
+}
+
+module And8(a[8], b[8]) -> out[8] {
+    And(a[0], b[0]) -> out[0]
+    And(a[1], b[1]) -> out[1]
+    And(a[2], b[2]) -> out[2]
+    And(a[3], b[3]) -> out[3]
+    And(a[4], b[4]) -> out[4]
+    And(a[5], b[5]) -> out[5]
+    And(a[6], b[6]) -> out[6]
+    And(a[7], b[7]) -> out[7]
+}
+
+module Or(a, b) -> out {
+    Not(a) -> nA
+    Not(b) -> nB
+    And(nB, nA) -> temp1
+    Not(temp1) -> out
+}
+
+module Or8(a[8], b[8]) -> out[8] {
+    Or(a[0], b[0]) -> out[0]
+    Or(a[1], b[1]) -> out[1]
+    Or(a[2], b[2]) -> out[2]
+    Or(a[3], b[3]) -> out[3]
+    Or(a[4], b[4]) -> out[4]
+    Or(a[5], b[5]) -> out[5]
+    Or(a[6], b[6]) -> out[6]
+    Or(a[7], b[7]) -> out[7]
+}
+
+module Or4Way(in[4]) -> out {
+    Or(in[0], in[1]) -> a
+    Or(a, in[2]) -> b
+    Or(b, in[3]) -> out
+}
+
+module Or8Way(in[8]) -> out {
+    Or(in[0], in[1]) -> a
+    Or(a, in[2]) -> b
+    Or(b, in[3]) -> c
+    Or(c, in[4]) -> d
+    Or(d, in[5]) -> e
+    Or(e, in[6]) -> f
+    Or(f, in[7]) -> out
+}
+
+module Xor(a, b) -> out {
+    Not(a) -> nA
+    Not(b) -> nB
+    And(a, nB) -> and1
+    And(nA, b) -> and2
+    Or(and1, and2) -> out
+}
+
+module Xor8(a[8], b[8]) -> out[8] {
+    Xor(a[0], b[0]) -> out[0]
+    Xor(a[1], b[1]) -> out[1]
+    Xor(a[2], b[2]) -> out[2]
+    Xor(a[3], b[3]) -> out[3]
+    Xor(a[4], b[4]) -> out[4]
+    Xor(a[5], b[5]) -> out[5]
+    Xor(a[6], b[6]) -> out[6]
+    Xor(a[7], b[7]) -> out[7]
+}
+
+
+/*
+    Mux and DMux
+*/
+
+module Mux(a, b, sel) -> out {
+    Not(sel) -> notSel
+    And(b, sel) -> and1
+    And(a, notSel) -> and2
+    Or(and1, and2) -> out
+}
+module Mux4(a[4], b[4], sel) -> out[4] {
+    Mux(a[0], b[0], sel) -> out[0]
+    Mux(a[1], b[1], sel) -> out[1]
+    Mux(a[2], b[2], sel) -> out[2]
+    Mux(a[3], b[3], sel) -> out[3]
+}
+
+module Mux8(a[8], b[8], sel) -> out[8] {
+    Mux(a[0], b[0], sel) -> out[0]
+    Mux(a[1], b[1], sel) -> out[1]
+    Mux(a[2], b[2], sel) -> out[2]
+    Mux(a[3], b[3], sel) -> out[3]
+    Mux(a[4], b[4], sel) -> out[4]
+    Mux(a[5], b[5], sel) -> out[5]
+    Mux(a[6], b[6], sel) -> out[6]
+    Mux(a[7], b[7], sel) -> out[7]
+}
+
+module Mux4Way8(a[8], b[8], c[8], d[8], sel[2]) -> out[8] {
+    Mux8(a, b, sel[0]) -> out1
+    Mux8(c, d, sel[0]) -> out2
+    Mux8(out1, out2, sel[1]) -> out
+}
+
+module Mux8Way8(a[8], b[8], c[8], d[8], 
+                 e[8], f[8], g[8], h[8],
+                 sel[3]) -> out[8] {
+    Mux4Way8(a, b, c, d, sel[0..1]) -> out1
+    Mux4Way8(e, f, g, h, sel[0..1]) -> out2
+    Mux8(out1, out2, sel[2]) -> out
+}
+
+module Mux16(a[16], b[16], sel) -> out[16] {
+    Mux(a[0], b[0], sel) -> out[0]
+    Mux(a[1], b[1], sel) -> out[1]
+    Mux(a[2], b[2], sel) -> out[2]
+    Mux(a[3], b[3], sel) -> out[3]
+    Mux(a[4], b[4], sel) -> out[4]
+    Mux(a[5], b[5], sel) -> out[5]
+    Mux(a[6], b[6], sel) -> out[6]
+    Mux(a[7], b[7], sel) -> out[7]
+    Mux(a[8], b[8], sel) -> out[8]
+    Mux(a[9], b[9], sel) -> out[9]
+    Mux(a[10], b[10], sel) -> out[10]
+    Mux(a[11], b[11], sel) -> out[11]
+    Mux(a[12], b[12], sel) -> out[12]
+    Mux(a[13], b[13], sel) -> out[13]
+    Mux(a[14], b[14], sel) -> out[14]
+    Mux(a[15], b[15], sel) -> out[15]
+}
+
+module Mux4Way16(a[16], b[16], c[16], d[16], sel[2]) -> out[16] {
+    Mux16(a, b, sel[0]) -> out1
+    Mux16(c, d, sel[0]) -> out2
+    Mux16(out1, out2, sel[1]) -> out
+}
+
+module Mux8Way16(a[16], b[16], c[16], d[16], 
+                 e[16], f[16], g[16], h[16],
+                 sel[3]) -> out[16] {
+    Mux4Way16(a, b, c, d, sel[0..1]) -> out1
+    Mux4Way16(e, f, g, h, sel[0..1]) -> out2
+    Mux16(out1, out2, sel[2]) -> out
+}
+
+module DMux(in, sel) -> a, b {
+    Not(sel) -> notSel
+    And(in, notSel) -> a
+    And(in, sel) -> b
+}
+
+module DMux4Way(in, sel[2]) -> a, b, c, d {
+    DMux(in, sel[0]) -> t1, t2
+    DMux(t1, sel[1]) -> a, c
+    DMux(t2, sel[1]) -> b, d
+}
+
+module DMux8Way(in, sel[3]) -> a, b, c, d, e, f, g, h {
+    DMux(in, sel[0]) -> t1, t2
+
+    DMux(t1, sel[1]) -> t3, t5
+    DMux(t2, sel[1]) -> t4, t6
+
+    DMux(t3, sel[2]) -> a, e
+    DMux(t4, sel[2]) -> b, f
+    DMux(t5, sel[2]) -> c, g
+    DMux(t6, sel[2]) -> d, h
+}
+
+/*
+    ALU
+*/
+
+module HalfAdder(a, b) -> sum, carry {
+    Xor(a, b) -> sum
+    And(a, b) -> carry
+}
+
+module FullAdder(a, b, c) -> sum, carry {
+    HalfAdder(a, b) -> sum1, carry1
+    HalfAdder(sum1, c) -> sum, carry2
+    Or(carry1, carry2) -> carry
+}
+
+module Add8(a[8], b[8]) -> out[8], carry {
+    HalfAdder(a[0], b[0]) -> out[0], carry0 
+    FullAdder(a[1], b[1], carry0) -> out[1], carry1
+    FullAdder(a[2], b[2], carry1) -> out[2], carry2
+    FullAdder(a[3], b[3], carry2) -> out[3], carry3
+
+    FullAdder(a[4], b[4], carry3) -> out[4], carry4
+    FullAdder(a[5], b[5], carry4) -> out[5], carry5
+    FullAdder(a[6], b[6], carry5) -> out[6], carry6
+    FullAdder(a[7], b[7], carry6) -> out[7], carry
+}
+
+module Inc8(a[8], inc) -> out[8] {
+    {1, 0, 0, 0, 0, 0, 0, 0}  -> b
+    Mux8(0, b, inc) -> mux
+    Add8(a, mux) -> out, carry
+}
+
+module ALU(x[8], y[8], ny) -> out[8], carry, zero {
+    Xor8(y, 1) -> flipped
+    Inc8(flipped, 1) -> negY
+    Mux8(y, negY, ny) -> finaly
+
+    Add8(x, finaly) -> result, carry
+    result -> out
+    Or8Way(result) -> or
+    Not(or) -> zero
+}
+
+/*
+    Memory
+*/
+
+module Bit(in, load) -> out {
+    Mux(dffOut, in, load) -> muxOut
+    Dff(muxOut) -> dffOut
+    dffOut -> out
+}
+
+module Register(in[8], load) -> out[8] {
+    Bit(in[0], load) -> out[0]
+    Bit(in[1], load) -> out[1]
+    Bit(in[2], load) -> out[2]
+    Bit(in[3], load) -> out[3]
+    Bit(in[4], load) -> out[4]
+    Bit(in[5], load) -> out[5]
+    Bit(in[6], load) -> out[6]
+    Bit(in[7], load) -> out[7]
+}
+
+module RAM4(data[8], load, addr[2]) -> out[8] {
+    DMux4Way(load, addr) -> loadA, loadB, loadC, loadD
+    Register(data, loadA) -> aout
+    Register(data, loadB) -> bout
+    Register(data, loadC) -> cout
+    Register(data, loadD) -> dout
+    Mux4Way8(aout, bout, cout, dout, addr) -> out
+}
+
+module RAM16(data[8], load, addr[4]) -> out[8] {
+    DMux4Way(load, addr[2..3]) -> loadA, loadB, loadC, loadD
+    RAM4(data, loadA, addr[0..1]) -> aout
+    RAM4(data, loadB, addr[0..1]) -> bout
+    RAM4(data, loadC, addr[0..1]) -> cout
+    RAM4(data, loadD, addr[0..1]) -> dout
+    Mux4Way8(aout, bout, cout, dout, addr[2..3]) -> out
+}
+
+/*
+    CPU
+*/
+
+module PC(data[8], load, reset, inc) -> out[8] {
+    Inc8(reg, inc) -> incout
+    Mux8(incout, 0, reset) -> mux
+    Mux8(mux, data, load) -> regInput
+    Register(regInput, 1) -> reg
+    reg -> out
+}
+
+module ShiftRegister(reset) -> out[5] {
+    Bit(o4, 1) -> b0
+    b0 -> out[0]
+
+    Bit(o0, 1) -> b1
+    b1 -> out[1]
+
+    Bit(o1, 1) -> b2
+    b2 -> out[2]
+
+    Bit(o2, 1) -> b3
+    b3 -> out[3]
+
+    Bit(o3, 1) -> b4
+    b4 -> out[4]
+
+    Mux(b0, 0, reset) -> o0
+    Mux(b1, 0, reset) -> o1
+    Mux(b2, 0, reset) -> o2
+    Mux(b3, 0, reset) -> o3
+    Mux(b4, 1, reset) -> o4
+}
+
+/*
+    Computer
+*/
+
+module FetchSignals(ring[5]) -> control_bits[16] {
+    {1, 0, 1, 0,   0, 0, 0, 0,   0, 0, 0, 0,  0, 0, 0, 0} -> t0
+    {0, 1, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,  0, 0, 0, 0} -> t1
+
+    Mux16(t0, t1, ring[1]) -> control_bits
+}
+module LDASignals(ring[5]) -> control_bits[16] {
+    {0, 0, 1, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> t3
+    {0, 0, 0, 1,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> t4
+
+    Or(ring[3], 0) -> sel
+    Mux16(t3, t4, sel) -> control_bits
+}
+
+module ADDSignals(ring[5]) -> control_bits[16] {
+    {0, 0, 1, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> t3 //load mar with instr operand
+    {0, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> t4 //load B register with RAM[MAR]
+    {0, 0, 0, 1,   0, 0, 0, 1,   0, 0, 0, 0,   0, 0, 0, 0} -> t5 //Add B to A, and store in A
+    {0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> noop
+
+    Or(ring[3], 0) -> sell
+    Or(ring[4], 0) -> selh
+    {sell, selh} -> sel
+    Mux4Way16(t3, t4, t5, noop, sel) -> control_bits
+}
+
+module SUBSignals(ring[5]) -> control_bits[16] {
+    {0, 0, 1, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> t3 //load mar with instr operand
+    {0, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> t4 //load B register with RAM[MAR]
+    {0, 0, 0, 1,   0, 0, 0, 1,   1, 0, 0, 0,   0, 0, 0, 0} -> t5 //Add -B to A, and store in A
+    {0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> noop
+
+    Or(ring[3], 0) -> sell
+    Or(ring[4], 0) -> selh
+    {sell, selh} -> sel
+    Mux4Way16(t3, t4, t5, noop, sel) -> control_bits
+}
+
+module STASignals(ring[5]) -> control_bits[16] {
+    {0, 0, 1, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> t3 //load mar with instr operand
+    {0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 0} -> t4 //write A to address stored in MAR
+
+    Or(ring[3], 0) -> sel
+    Mux16(t3, t4, sel) -> control_bits
+}
+
+module LDISignals(ring[5]) -> control_bits[16] {
+    {0, 0, 0, 1,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> control_bits //loadA and hbAddr microops
+}
+
+module JMPSignals(ring[5]) -> control_bits[16] {
+    {0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 1,   0, 0, 0, 0} -> t2 //load PC with operand
+    {0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> noop
+    Or(ring[3], 0) -> sell
+    Or(ring[4], 0) -> selh
+    {sell, selh} -> sel
+    Mux4Way16(t2, noop, noop, noop, sel) -> control_bits
+}
+
+module JCSignals(ring[5]) -> control_bits[16] {
+    {0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   1, 0, 0, 0} -> t2 //load PC with operand + onCarry
+    {0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> noop
+    Or(ring[3], 0) -> sell
+    Or(ring[4], 0) -> selh
+    {sell, selh} -> sel
+    Mux4Way16(t2, noop, noop, noop, sel) -> control_bits
+}
+
+module JZSignals(ring[5]) -> control_bits[16] {
+    {0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 1, 0, 0} -> t2 //load PC with operand + onZero
+    {0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> noop
+    Or(ring[3], 0) -> sell
+    Or(ring[4], 0) -> selh
+    {sell, selh} -> sel
+    Mux4Way16(t2, noop, noop, noop, sel) -> control_bits
+}
+
+module OUTSignals(ring[5]) -> control_bits[16] {
+    {0, 0, 0, 0,   0, 0, 0, 0,   0, 1, 0, 0,   0, 0, 0, 0} -> control_bits
+}
+
+module HLTSignals(ring[5]) -> control_bits[16] {
+    {0, 0, 0, 0,   0, 1, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> control_bits
+}
+
+module Controller(instr[8], reset) -> inc, loadInstr, loadMar, loadA,      
+                                      hbAddr, halt, loadB, aGetsAluResult, 
+                                      negAluY, loadOut, storeA, loadPC,
+                                      onCarry, onZero {
+    ShiftRegister(reset) -> ring
+
+    Or4Way({ring[0], ring[1], 0, 0}) -> isFetch
+
+    {0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> noop_signals
+
+    FetchSignals(ring) -> fetch_signals
+    HLTSignals(ring) -> halt_signals
+    LDASignals(ring) -> lda_signals
+    ADDSignals(ring) -> add_signals
+    SUBSignals(ring) -> sub_signals
+    OUTSignals(ring) -> out_signals
+    STASignals(ring) -> sta_signals
+    LDISignals(ring) -> ldi_signals
+    JMPSignals(ring) -> jmp_signals
+    JCSignals(ring) -> jc_signals
+    JZSignals(ring) -> jz_signals
+
+    Mux8Way16(noop_signals, lda_signals, add_signals, sub_signals, sta_signals, ldi_signals, jmp_signals, jc_signals, instr[0..2]) -> mux1
+    Mux4Way16(jz_signals, out_signals, halt_signals, noop_signals, instr[0..1]) -> mux2
+    Mux16(mux1, mux2, instr[3]) -> cs_candidates
+    Mux16(cs_candidates, fetch_signals, isFetch) -> cs
+
+    cs[0] -> inc
+    cs[1] -> loadInstr
+    cs[2] -> loadMar
+    cs[3] -> loadA
+
+    cs[4] -> hbAddr
+    cs[5] -> halt
+    cs[6] -> loadB
+    cs[7] -> aGetsAluResult
+
+    cs[8] -> negAluY
+    cs[9] -> loadOut
+    cs[10] -> storeA
+    cs[11] -> loadPC
+    
+    cs[12] -> onCarry
+    cs[13] -> onZero
+}
+/*
+    NOP 0000 XXXX
+    LDA 1000 AAAA
+    ADD 0100 AAAA
+    SUB 1100 AAAA
+    STA 0010 AAAA
+    LDI 1010 VVVV
+    JMP 0110 AAAA
+    JC  1110 AAAA
+
+    JZ  0001 AAAA
+    OUT 1001 XXXX
+    HLT 0101 XXXX
+*/
+
+module Computer(reset) -> halt, outReg[8] {
+    ram: RAM16(a, storeA, mar[0..3]) -> out
+    out: Register(a, loadOut) -> outReg
+
+    //may want to put all of this into a module called CPU
+    {instr[4..7], 0, 0, 0, 0} -> operand
+    Mux8(pc, operand, hbAddr) -> marInput
+    mar: Register(marInput, loadMar) -> mar
+    ins: Register(out, loadInstr) -> instr
+    Mux8(out, alu, aGetsAluResult) -> aInputtemp
+    Mux8(aInputtemp, operand, hbAddr) -> aInput
+    a: Register(aInput, loadA) -> a
+    b: Register(out, loadB) -> b
+
+    And(carryFlag, onCarry) -> carry_dst
+    And(zeroFlag, onZero) -> zero_dst
+    Or4Way ({carry_dst, zero_dst, jump, 0}) -> loadPC
+    pc: PC(operand, loadPC, reset, inc) -> pc
+
+    ALU(a, b, negAluY) -> alu, carry, zero
+    Controller(instr, reset) -> inc, loadInstr, loadMar, loadA, 
+                                hbAddr, halt, loadB, aGetsAluResult, 
+                                negAluY, loadOut, storeA, jump,
+                                onCarry, onZero
+
+    carry: Bit(carry, aGetsAluResult) -> carryFlag
+    zero: Bit(zero, aGetsAluResult) -> zeroFlag
+}
+

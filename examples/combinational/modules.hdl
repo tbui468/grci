@@ -1,0 +1,46 @@
+module Not(a) -> out {
+    Nand(a, a) -> out 
+}
+
+module And(a, b) -> out {
+    Nand(a, b) -> temp
+    Not(temp) -> out
+}
+
+module Or(a, b) -> out {
+    Not(a) -> nA
+    Not(b) -> nB
+    And(nB, nA) -> temp1
+    Not(temp1) -> out
+}
+
+module Xor(a, b) -> out {
+    Not(a) -> nA
+    Not(b) -> nB
+    And(a, nB) -> and1
+    And(nA, b) -> and2
+    Or(and1, and2) -> out
+}
+
+module HalfAdder(a, b) -> sum, carry {
+    Xor(a, b) -> sum
+    And(a, b) -> carry
+}
+
+module FullAdder(a, b, c) -> sum, carry {
+    HalfAdder(a, b) -> sum1, carry1
+    HalfAdder(sum1, c) -> sum, carry2
+    Or(carry1, carry2) -> carry
+}
+
+module Add8(a[8], b[8]) -> out[8], carry {
+    HalfAdder(a[0], b[0]) -> out[0], carry0 
+    FullAdder(a[1], b[1], carry0) -> out[1], carry1
+    FullAdder(a[2], b[2], carry1) -> out[2], carry2
+    FullAdder(a[3], b[3], carry2) -> out[3], carry3
+
+    FullAdder(a[4], b[4], carry3) -> out[4], carry4
+    FullAdder(a[5], b[5], carry4) -> out[5], carry5
+    FullAdder(a[6], b[6], carry5) -> out[6], carry6
+    FullAdder(a[7], b[7], carry6) -> out[7], carry
+}
