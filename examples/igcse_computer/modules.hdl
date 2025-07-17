@@ -10,6 +10,12 @@ module And(a, b) -> out {
     Not(temp) -> out
 }
 
+module And4Way(a, b, c, d) -> out {
+    And(a, b) -> a1
+    And(c, d) -> a2
+    And(a1, a2) -> out
+}
+
 module Or(a, b) -> out {
     Not(a) -> nA
     Not(b) -> nB
@@ -212,11 +218,10 @@ module RAM16(data[8], load, addr[4]) -> out[8] {
     CPU
 */
 
-module PC(data[8], load, reset, inc) -> out[8] {
+module PC(reset, inc) -> out[8] {
     Inc8(reg, inc) -> incout
     Mux8(incout, 0, reset) -> mux
-    Mux8(mux, data, load) -> regInput
-    Register(regInput, 1) -> reg
+    Register(mux, 1) -> reg
     reg -> out
 }
 
@@ -252,27 +257,28 @@ module ShiftRegister(reset) -> out[6] {
 */
 
 module FetchSignals(ring[6]) -> control_bits[16] {
-    {1, 0, 1, 0,   0, 0, 0, 0,   0, 0, 0, 0,  0, 0, 0, 0} -> t0 //load mar and increment pc
-    {0, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 0,  0, 0, 0, 0} -> t1 //load MDR with data
-    {0, 1, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,  0, 0, 0, 0} -> t2 //move MDR to CIR
+    {0, 1, 0,   0, 0, 0,   0, 0, 0, 0,  0, 0, 0, 0, 0, 0} -> t0 //load mar and increment pc
+    {0, 0, 0,   0, 1, 0,   0, 0, 0, 0,  0, 0, 0, 0, 0, 0} -> t1 //load MDR with data
+    {1, 0, 0,   0, 0, 0,   0, 0, 0, 0,  0, 0, 0, 0, 0, 0} -> t2 //move MDR to CIR
 
     Mux16(t0, t1, ring[1]) -> temp
     Mux16(temp, t2, ring[2]) -> control_bits
 }
+
 module LDASignals(ring[6]) -> control_bits[16] {
-    {0, 0, 1, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> t3 //load MAR with instr operand
-    {0, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> t4 //load MDR register with RAM[MAR]
-    {0, 0, 0, 1,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> t5 //load ACC with MDR
+    {0, 1, 0,   1, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0, 0, 0} -> t3 //load MAR with instr operand
+    {0, 0, 0,   0, 1, 0,   0, 0, 0, 0,   0, 0, 0, 0, 0, 0} -> t4 //load MDR register with RAM[MAR]
+    {0, 0, 1,   0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0, 0, 0} -> t5 //load ACC with MDR
 
     Mux16(t3, t4, ring[4]) -> temp
     Mux16(temp, t5, ring[5]) -> control_bits
 }
 
 module ADDSignals(ring[6]) -> control_bits[16] {
-    {0, 0, 1, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> t3 //load mar with instr operand
-    {0, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> t4 //load B register with RAM[MAR]
-    {0, 0, 0, 1,   0, 0, 0, 1,   0, 0, 0, 0,   0, 0, 0, 0} -> t5 //Add B to A, and store in A
-    {0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> noop
+    {0, 1, 0,   1, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0, 0, 0} -> t3 //load mar with instr operand
+    {0, 0, 0,   0, 1, 0,   0, 0, 0, 0,   0, 0, 0, 0, 0, 0} -> t4 //load B register with RAM[MAR]
+    {0, 0, 1,   0, 0, 1,   0, 0, 0, 0,   0, 0, 0, 0, 0, 0} -> t5 //Add B to A, and store in A
+    {0, 0, 0,   0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0, 0, 0} -> noop
 
     Or(ring[3], 0) -> sell
     Or(ring[4], 0) -> selh
@@ -281,10 +287,10 @@ module ADDSignals(ring[6]) -> control_bits[16] {
 }
 
 module SUBSignals(ring[6]) -> control_bits[16] {
-    {0, 0, 1, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> t3 //load mar with instr operand
-    {0, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> t4 //load B register with RAM[MAR]
-    {0, 0, 0, 1,   0, 0, 0, 1,   1, 0, 0, 0,   0, 0, 0, 0} -> t5 //Add -B to A, and store in A
-    {0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> noop
+    {0, 1, 0,   1, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0, 0, 0} -> t3 //load mar with instr operand
+    {0, 0, 0,   0, 1, 0,   0, 0, 0, 0,   0, 0, 0, 0, 0, 0} -> t4 //load B register with RAM[MAR]
+    {0, 0, 1,   0, 0, 1,   1, 0, 0, 0,   0, 0, 0, 0, 0, 0} -> t5 //Add -B to A, and store in A
+    {0, 0, 0,   0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0, 0, 0} -> noop
 
     Or(ring[3], 0) -> sell
     Or(ring[4], 0) -> selh
@@ -293,24 +299,26 @@ module SUBSignals(ring[6]) -> control_bits[16] {
 }
 
 module STASignals(ring[6]) -> control_bits[16] {
-    {0, 0, 1, 0,   1, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> t3 //load mar with instr operand
-    {0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 0} -> t4 //write A to address stored in MAR
+    {0, 1, 0,   1, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0, 0, 0} -> t3 //load mar with instr operand
+    {0, 0, 0,   0, 0, 0,   0, 1, 0, 0,   0, 0, 0, 0, 0, 0} -> t4 //write A to address stored in MAR
 
     Or(ring[3], 0) -> sel
     Mux16(t3, t4, sel) -> control_bits
 }
 
 module HLTSignals(ring[6]) -> control_bits[16] {
-    {0, 0, 0, 0,   0, 1, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> control_bits
+    {0, 0, 0,   0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0, 0, 0} -> control_bits
 }
 
-module Controller(instr[8], reset) -> inc, loadInstr, loadMar, loadA,      
-                                      hbAddr, halt, loadB, aGetsAluResult, 
-                                      negAluY, loadOut, storeA, loadPC,
-                                      onCarry, onZero {
+module Controller(instr[8], reset) -> loadInstr, loadMar, loadA, hbAddr, 
+                                      halt, loadB, aGetsAluResult, negAluY, 
+                                      storeA  {
     ShiftRegister(reset) -> ring
 
     Or4Way(ring[0], ring[1], ring[2], 0) -> isFetch
+    Not(instr[1]) -> n1
+    Not(isFetch) -> nFetch
+    And4Way(instr[0], n1, instr[2], nFetch) -> halt
 
     {0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0,   0, 0, 0, 0} -> noop_signals
 
@@ -324,19 +332,15 @@ module Controller(instr[8], reset) -> inc, loadInstr, loadMar, loadA,
     Mux8Way16(noop_signals, lda_signals, add_signals, sub_signals, sta_signals, halt_signals, noop_signals, noop_signals, instr[0..2]) -> cs_candidates
     Mux16(cs_candidates, fetch_signals, isFetch) -> cs
 
-    cs[0] -> inc //TODO remove and increment when loadingInstruction
-    cs[1] -> loadInstr
-    cs[2] -> loadMar
-    cs[3] -> loadA
+    cs[0] -> loadInstr
+    cs[1] -> loadMar
+    cs[2] -> loadA
+    cs[3] -> hbAddr
 
-    cs[4] -> hbAddr
-    cs[5] -> halt
-    cs[6] -> loadB
-    cs[7] -> aGetsAluResult
-
-    cs[8] -> negAluY
-    cs[9] -> loadOut //TODO remove since out register won't be used anymore
-    cs[10] -> storeA
+    cs[4] -> loadB
+    cs[5] -> aGetsAluResult
+    cs[6] -> negAluY
+    cs[7] -> storeA
 }
 /*
     NOP 0000 XXXX
@@ -347,11 +351,9 @@ module Controller(instr[8], reset) -> inc, loadInstr, loadMar, loadA,
     HLT 1010 XXXX
 */
 
-module Computer(reset) -> halt, outReg[8] {
+module Computer(reset) -> halt {
     ram: RAM16(acc, storeA, mar[0..3]) -> out
-    out: Register(acc, loadOut) -> outReg
 
-    //may want to put all of this into a module called CPU
     {cir[4..7], 0, 0, 0, 0} -> operand
     Mux8(pc, operand, hbAddr) -> marInput
     mar: Register(marInput, loadMar) -> mar
@@ -360,11 +362,11 @@ module Computer(reset) -> halt, outReg[8] {
     acc: Register(aInput, loadA) -> acc
     mdr: Register(out, loadB) -> mdr
 
-    pc: PC(0, 0, reset, inc) -> pc
+    pc: PC(reset, loadInstr) -> pc
 
     ALU(acc, mdr, negAluY) -> alu, carry, zero
-    Controller(cir, reset) -> inc, loadInstr, loadMar, loadA, 
-                                hbAddr, halt, loadB, aGetsAluResult, 
-                                negAluY, loadOut, storeA
+    Controller(cir, reset) -> loadInstr, loadMar, loadA, hbAddr, 
+                              halt, loadB, aGetsAluResult, negAluY, 
+                              storeA
 }
 
