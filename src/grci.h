@@ -34,5 +34,7 @@ GRCI_API bool grci_step_module(struct grci_module *m);
 GRCI_API void grci_destroy_module(struct grci_module *m);
 GRCI_API void grci_cleanup(struct grci *g);
 GRCI_API const char *grci_err(void);
+GRCI_API void grci_set_input(struct grci_module *m, int idx, bool value);
+GRCI_API bool grci_get_output(struct grci_module *m, int idx);
 
 #endif

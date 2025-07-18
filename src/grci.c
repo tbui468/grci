@@ -24,6 +24,22 @@
 #define GRCI_OK true
 #define GRCI_ERR false
 
+//TODO: bug where adding a logic gate to Controller causes a node to be NULL, and it crashes
+//  this is a major bug when IGCSE Computer output NOT being used, and memory being overwritten somewhere?
+//  grci should give an error when module output is NOT set.
+
+//TODO: Use enums to keep all error messages in same place
+/*
+    Make a enum to specify error type: too many inputs, not enough inputs, too many outputs, not enough outputs, etc
+    Use this rather than messages so that we can keep all messages in same place
+
+*/
+
+//TODO: Allow grabbing submodules within submodules
+/*
+    Need this in order to read state of deeply embedded modules
+*/
+
 typedef bool grci_status;
 static char grci_err_buf[128];
 
@@ -74,43 +90,6 @@ static int grci_err_prefix(enum grci_err_type type, int line) {
             return NULL; \
         } \
     } while (0)
-
-
-/*
-static inline void grci_ensure(bool cond, enum grci_err_type type, int line, const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-
-    if (!cond) {
-        switch (type) {
-        case GRCI_ERR_COMP:
-            printf("GRCI compilation error [near line %d]: ", line);
-            break;
-        case GRCI_ERR_SIM:
-            printf("GRCI simulation error: ");
-            break;
-        case GRCI_ERR_MEM:
-            printf("GRCI memory allocation error: ");
-            break;
-        case GRCI_ERR_INTERN:
-            printf("GRCI internal error: ");
-            break;
-        default:
-            printf("invalid error code\n");
-            exit(-1);
-            break;
-        }
-        vprintf(fmt, args);
-        printf("\n");
-        fflush(stdout);
-    }
-
-    va_end(args);
-    assert(cond);
-    if (!cond) {
-        exit(-1);
-    }
-}*/
 
 
 /*
@@ -2135,6 +2114,8 @@ grci_status grci_compile_src(struct grci *g, const char *buf, size_t len) {
         if (peek.type == GRCI_TT_EOF) {
             break;
         } else if (grci_string_matches(&peek.literal, "module", 6)) {
+            struct grci_token pp = grci_peek_two(compiler);
+            //printf("compiling: %.*s\n", pp.literal.len, pp.literal.ptr);
             grci_ensure(grci_compiler_compile_module(compiler), GRCI_ERR_COMP, -1, "placeholder");
         } else {
             grci_ensure(false, GRCI_ERR_COMP, peek.line, "Use keyword 'module' to make a new module");
@@ -2148,7 +2129,18 @@ grci_status grci_compile_src(struct grci *g, const char *buf, size_t len) {
 struct grci_module *grci_init_module(struct grci *g, const char *module_name, size_t len) {
     struct grci_module *module = g->client_malloc(sizeof(struct grci_module));
     struct grci_string string = { .ptr = module_name, .len = len };
+    //printf("\n");
+
+    for (int i = 0; i < g->compiler.module_defs.count; i++) {
+            const struct grci_module_desc *cur = &g->compiler.module_defs.entries[i];
+            //printf("list item: %.*s\n", cur->name.len, cur->name.ptr);
+    }
     const struct grci_module_desc* decl = grci_module_desc_list_get(&g->compiler.module_defs, &string);
+    printf("\n");
+    if (!decl) {
+        printf("*************%.*s\n", string.len, string.ptr);
+    }
+    assert(decl);
 
     module->sim = g->client_malloc(sizeof(struct grci_sim));
     module->sim->g = g;
@@ -2320,6 +2312,15 @@ void grci_cleanup(struct grci *g) {
 const char *grci_err(void) {
     return grci_err_buf;
 }
+
+void grci_set_input(struct grci_module *m, int idx, bool value) {
+    m->inputs[idx] = value;
+}
+
+bool grci_get_output(struct grci_module *m, int idx) {
+    return m->outputs[idx];
+}
+
 
 #undef GRCI_DEFAULT_CHUNK_SIZE
 #undef GRCI_RAM64K_STATE_COUNT
