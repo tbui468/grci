@@ -454,7 +454,7 @@ module STASignals(ring[6]) -> signals[8] {
     src[3]: null, mdr, acc, mem, pc, alu, operand, null
             000   100  010  110  001 101  011      111
 */
-module ControlUnit(cir[8], reset) -> dst[3], src[3], negY, halt, inc {
+module ControlUnit(mdr[8], reset) -> dst[3], src[3], negY, halt, inc, operand[8] {
     ShiftRegister(reset) -> ring
 
     NOPSignals(ring) -> nop
@@ -475,6 +475,11 @@ module ControlUnit(cir[8], reset) -> dst[3], src[3], negY, halt, inc {
     Not(cs[4]) -> ncs4
     And4Way(1, ncs3, ncs4, cs[5]) -> inc
 
+    //if fetch cycle 2, load cir
+    cir: Register(mdr, ring[2]) -> cir
+
+    //read instruction operand
+    {cir[4..7], 0, 0, 0, 0} -> operand
 }
 
 module Computer(reset) -> halt {
@@ -485,15 +490,10 @@ module Computer(reset) -> halt {
     mar: Register(srcData, loadMar) -> mar
     mdr: Register(srcData, loadMdr) -> mdr
     acc: Register(srcData, loadAcc) -> acc
-    cir: Register(srcData, loadCir) -> cir
-
-    //read instruction operand
-    {cir[4..7], 0, 0, 0, 0} -> operand
-
     pc: PC(reset, inc) -> pc
 
     ALU(acc, mdr, negY) -> alu, carry, zero
-    ControlUnit(cir, reset) -> dst, src, negY, halt, inc
+    ControlUnit(mdr, reset) -> dst, src, negY, halt, inc, operand
 }
 /*
 module Computer(reset) -> halt {
