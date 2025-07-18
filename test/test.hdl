@@ -372,3 +372,12 @@ module OffsetBug3() -> x, y {
     Or4Way (w0) -> x
     Or4Way (w1) -> y
 }
+
+
+module CycleBugInner(x[8]) -> out[4] {
+    x[4..7] -> out
+}
+module CycleBug() -> x[4] {
+    {0, 0, 0, 0, 1, 1, 1, 1} -> y
+    CycleBugInner(y) -> x
+}
