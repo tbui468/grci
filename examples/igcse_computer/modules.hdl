@@ -454,7 +454,7 @@ module STASignals(ring[6]) -> signals[8] {
     src[3]: null, mdr, acc, mem, pc, alu, operand, null
             000   100  010  110  001 101  011      111
 */
-module ControlUnit(mdr[8], reset) -> dst[3], src[3], negY, halt, inc, operand[8] {
+module ControlUnit(cir[8], reset) -> dst[3], src[3], negY, halt {
     ShiftRegister(reset) -> ring
 
     NOPSignals(ring) -> nop
@@ -469,32 +469,62 @@ module ControlUnit(mdr[8], reset) -> dst[3], src[3], negY, halt, inc, operand[8]
     {cs[3], cs[4], cs[5]} -> src
     cs[6] -> negY
     cs[7] -> halt
-
-    //set inc if PC is src
-    Not(cs[3]) -> ncs3
-    Not(cs[4]) -> ncs4
-    And4Way(1, ncs3, ncs4, cs[5]) -> inc
-
-    //if fetch cycle 2, load cir
-    cir: Register(mdr, ring[2]) -> cir
-
-    //read instruction operand
-    {cir[4..7], 0, 0, 0, 0} -> operand
 }
 
-module Computer(reset) -> halt {
-    ram: RAM16(acc, loadMem, mar[0..3]) -> mem
-
-    Mux8Way8(0, mdr, acc, mem, pc, alu, operand, 0, src) -> srcData
+/*
+module CPU(in[8], reset) -> out[8], write, addr[4], halt {
+    Mux8Way8(0, mdr, acc, in, pc, alu, operand, 0, src) -> srcData
     DMux8Way(1, dst) -> null0, loadMdr, loadAcc, loadMem, loadMar, loadCir, null6, null7
     mar: Register(srcData, loadMar) -> mar
     mdr: Register(srcData, loadMdr) -> mdr
     acc: Register(srcData, loadAcc) -> acc
+    cir: Register(srcData, loadCir) -> cir
     pc: PC(reset, inc) -> pc
 
     ALU(acc, mdr, negY) -> alu, carry, zero
-    ControlUnit(mdr, reset) -> dst, src, negY, halt, inc, operand
+    ControlUnit(cir, reset) -> dst, src, negY, halt
+
+    //set inc if PC is src
+    Not(src[0]) -> ncs3
+    Not(src[1]) -> ncs4
+    And4Way(1, ncs3, ncs4, src[2]) -> inc
+
+    //read instruction operand
+    {cir[4..7], 0, 0, 0, 0} -> operand
+
+
+    acc -> out
+    loadMem -> write
+    mar[0..3] -> addr
 }
+*/
+
+module Computer(reset) -> halt {
+    /*
+        ram: RAM16(writeData, loadMem, addr) -> readData
+        cpu: CPU(readData, reset) -> writeData, memLoad, memAddr, halt
+    */
+
+    Mux8Way8(0, mdr, acc, mem, pc, alu, operand, 0, src) -> srcData
+    DMux8Way(1, dst) -> null0, loadMdr, loadAcc, loadMem, loadMar, loadCir, null6, null7
+
+    ram: RAM16(acc, loadMem, mar[0..3]) -> mem
+    mar: Register(srcData, loadMar) -> mar
+    mdr: Register(srcData, loadMdr) -> mdr
+    acc: Register(srcData, loadAcc) -> acc
+    cir: Register(srcData, loadCir) -> cir
+    pc: PC(reset, inc) -> pc
+
+    ALU(acc, mdr, negY) -> alu, carry, zero
+    ControlUnit(cir, reset) -> dst, src, negY, halt
+
+    Not(src[0]) -> ncs3
+    Not(src[1]) -> ncs4
+    And4Way(1, ncs3, ncs4, src[2]) -> inc
+
+    {cir[4..7], 0, 0, 0, 0} -> operand
+}
+
 /*
 module Computer(reset) -> halt {
     ram: RAM16(acc, storeA, mar[0..3]) -> out
