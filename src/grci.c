@@ -2320,7 +2320,12 @@ void grci_set_input(struct grci_module *m, int idx, bool value) {
 bool grci_get_output(struct grci_module *m, int idx) {
     return m->outputs[idx];
 }
-
+void grci_set_state(struct grci_submodule *m, int idx, bool value) {
+    m->states[idx] = value;
+}
+bool grci_get_state(struct grci_submodule *m, int idx) {
+    return m->states[idx];
+}
 
 #undef GRCI_DEFAULT_CHUNK_SIZE
 #undef GRCI_RAM64K_STATE_COUNT
